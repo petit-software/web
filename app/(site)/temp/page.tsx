@@ -9,7 +9,7 @@ export default function TempPage() {
 
       <footer className={styles.footer}>
         <div className={`centered-text ${styles.footerWrapper}`}>
-          <h2 className={`type-title ${styles.footerHeading}`}>Personalized Software for Businesses and Individuals Delivered</h2>
+          <h2 className={`type-title ${styles.footerHeading}`}>Software for Individuals and Businesses</h2>
           <Button variant="primary" disabled>Coming soon</Button>
         </div>
         <p className="type-small centered-text text-tertiary">

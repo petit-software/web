@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function RootPage() {
-  redirect("/temp");
-}
+export { default } from "@/app/(site)/temp/page";
