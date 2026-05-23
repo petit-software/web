@@ -1,4 +1,5 @@
-import Image from "next/image";
+import LogoSvg from "./LogoSvg";
+import { loadLogoSvg } from "./parseLogo";
 
 interface LogoProps {
   width?: number;
@@ -6,16 +7,7 @@ interface LogoProps {
   className?: string;
 }
 
-export default function Logo({ width = 128, height = 128, className }: LogoProps) {
-  return (
-    <Image
-      src="/images/logo.svg"
-      alt="Petit"
-      width={width}
-      height={height}
-      className={className}
-      unoptimized
-      priority
-    />
-  );
+export default function Logo({ width = 368, height = 154, className }: LogoProps) {
+  const data = loadLogoSvg();
+  return <LogoSvg data={data} width={width} height={height} className={className} />;
 }
