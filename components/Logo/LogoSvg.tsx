@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, type Variants } from "motion/react";
-import type { LogoSvgData } from "./parseLogo";
+import type { LogoShape, LogoSvgData } from "./parseLogo";
 
 interface LogoSvgProps {
   data: LogoSvgData;
@@ -42,6 +42,14 @@ const glyphVariants: Variants = {
   }),
 };
 
+function isLine(shape: LogoShape) {
+  return shape.stroke != null;
+}
+
+function isGlyph(shape: LogoShape) {
+  return shape.stroke == null && shape.fill === "black";
+}
+
 export default function LogoSvg({ data, width, height, className }: LogoSvgProps) {
   const reduce = useReducedMotion();
 
@@ -62,24 +70,36 @@ export default function LogoSvg({ data, width, height, className }: LogoSvgProps
       animate="visible"
       style={{ display: "block" }}
     >
-      {data.paths.map((p, i) => {
-        const isLine = p.stroke != null;
-        const isGlyph = p.fill === "black";
-        const variants = isLine ? lineVariants : isGlyph ? glyphVariants : undefined;
-        const custom = isLine ? lineIndex++ : isGlyph ? glyphIndex++ : 0;
+      {data.shapes.map((shape, i) => {
+        const line = isLine(shape);
+        const glyph = isGlyph(shape);
+        const variants = line ? lineVariants : glyph ? glyphVariants : undefined;
+        const custom = line ? lineIndex++ : glyph ? glyphIndex++ : 0;
 
-        return (
-          <motion.path
-            key={i}
-            d={p.d}
-            fill={p.fill ?? "none"}
-            stroke={p.stroke}
-            strokeWidth={p.strokeWidth}
-            strokeLinecap={p.strokeLinecap}
-            variants={variants}
-            custom={custom}
-          />
-        );
+        const common = {
+          fill: shape.fill ?? "none",
+          stroke: shape.stroke,
+          strokeWidth: shape.strokeWidth,
+          strokeLinecap: shape.strokeLinecap,
+          transform: shape.transform,
+          variants,
+          custom,
+        };
+
+        if (shape.type === "ellipse") {
+          return (
+            <motion.ellipse
+              key={i}
+              cx={shape.cx}
+              cy={shape.cy}
+              rx={shape.rx}
+              ry={shape.ry}
+              {...common}
+            />
+          );
+        }
+
+        return <motion.path key={i} d={shape.d} {...common} />;
       })}
     </motion.svg>
   );

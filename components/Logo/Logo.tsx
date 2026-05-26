@@ -7,7 +7,7 @@ interface LogoProps {
   className?: string;
 }
 
-export default function Logo({ width = 368, height = 154, className }: LogoProps) {
+export default function Logo({ width = 368, height = 155, className }: LogoProps) {
   const data = loadLogoSvg();
   return <LogoSvg data={data} width={width} height={height} className={className} />;
 }
