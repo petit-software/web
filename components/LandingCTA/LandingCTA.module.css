@@ -1,0 +1,26 @@
+.cta {
+  padding-block: var(--space-24) var(--space-32);
+  background:
+    radial-gradient(60% 80% at 50% 100%, var(--color-accent-soft), transparent 70%),
+    var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-5);
+}
+
+.title {
+  color: var(--color-text-primary);
+  margin: 0;
+  max-width: 18ch;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-4);
+  max-width: 40ch;
+}

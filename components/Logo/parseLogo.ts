@@ -39,21 +39,24 @@ function parseAttrs(input: string): Record<string, string> {
   return out;
 }
 
+function themeColor(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const v = value.toLowerCase();
+  if (v === "black" || v === "#000" || v === "#000000") return "currentColor";
+  return value;
+}
+
 function readShared(attrs: Record<string, string>): SharedAttrs {
   return {
-    fill: attrs.fill,
-    stroke: attrs.stroke,
+    fill: themeColor(attrs.fill),
+    stroke: themeColor(attrs.stroke),
     strokeWidth: attrs["stroke-width"] ? Number(attrs["stroke-width"]) : undefined,
     strokeLinecap: attrs["stroke-linecap"] as SharedAttrs["strokeLinecap"],
     transform: attrs.transform,
   };
 }
 
-let cached: LogoSvgData | null = null;
-
 export function loadLogoSvg(): LogoSvgData {
-  if (cached) return cached;
-
   const filePath = path.join(process.cwd(), "public/images/petit-label.svg");
   const raw = fs.readFileSync(filePath, "utf-8");
 
@@ -83,6 +86,5 @@ export function loadLogoSvg(): LogoSvgData {
     }
   }
 
-  cached = { viewBox, shapes };
-  return cached;
+  return { viewBox, shapes };
 }

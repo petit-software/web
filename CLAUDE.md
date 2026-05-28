@@ -1,220 +1,159 @@
-# Website Recreation Prompt
+# Petit Web — Project Guide
 
-```text
-Recreate this marketing website as a production-quality codebase using the exact architectural style below.
+Marketing site for Petit. The codebase is built around a **landing-page template system**: each landing page is a markdown file declared in a registry and rendered through a single template route.
 
-Tech stack:
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- motion.dev via `motion/react`
-- CSS Modules plus global token files
-- `next/image` for images
-- Netlify deployment with `@netlify/plugin-nextjs`
-- npm as package manager
+## Stack
 
-Dependencies to use when relevant:
-- next
-- react
-- react-dom
-- motion
-- embla-carousel
-- embla-carousel-react
+- **Next.js 15** App Router, **React 19**, **TypeScript**
+- **Framer Motion** (`framer-motion`) for animation — not `motion/react`
+- **CSS Modules** + native CSS nesting + global token files (NO Tailwind, NO shadcn, NO styled-components)
+- **gray-matter** + **react-markdown** + **remark-gfm** for landing-page content
+- **next/image** for managed images
+- **Netlify** deployment via `@netlify/plugin-nextjs`
+- **npm** package manager
 
-Do not add Tailwind, shadcn, styled-components, Framer Motion, or any new UI kit.
+## File structure
 
-Use this file/folder structure and stay close to it:
-
+```
 /
 ├─ app/
+│  ├─ layout.tsx
+│  ├─ page.tsx                       # redirects to first landing page
 │  ├─ globals.css
-│  ├─ colors.css
-│  ├─ spacing.css
+│  ├─ colors.css                     # design tokens
+│  ├─ spacing.css                    # 4px-grid spacing scale
 │  ├─ radius.css
 │  ├─ typography.css
-│  ├─ api/
-│  │  └─ email-signup/
-│  │     └─ route.ts
-│  └─ (site)/
-│     ├─ layout.tsx
-│     ├─ page.tsx
-│     ├─ access/
-│     │  ├─ page.tsx
-│     │  └─ page.module.css
-│     ├─ about/
-│     │  ├─ page.tsx
-│     │  ├─ page.module.css
-│     │  └─ components/
-│     │     ├─ Header/
-│     │     ├─ WhyRuby/
-│     │     ├─ WeBelieve/
-│     │     ├─ OurApproach/
-│     │     ├─ Team/
-│     │     └─ CallToAction/
-│     ├─ home/
-│     │  ├─ page.tsx
-│     │  ├─ HomePage.tsx
-│     │  └─ components/
-│     │     ├─ Hero/
-│     │     ├─ Features/
-│     │     ├─ BuiltWithAndFor/
-│     │     ├─ HowItWorks/
-│     │     ├─ WhatYouGet/
-│     │     ├─ HowWeHelp/
-│     │     ├─ Mission/
-│     │     ├─ PowerUp/
-│     │     └─ FooterNanoAccessButton/
-│     ├─ manifest/
-│     │  ├─ page.tsx
-│     │  └─ page.module.css
-│     └─ (legal)/
-│        ├─ page.module.css
-│        ├─ components/
-│        │  └─ LastUpdate.tsx
-│        ├─ content/
-│        │  ├─ types.ts
-│        │  ├─ privacy.ts
-│        │  ├─ terms.ts
-│        │  └─ imprint.ts
-│        ├─ privacy/page.tsx
-│        ├─ terms/page.tsx
-│        └─ imprint/page.tsx
+│  ├─ motion.css                     # easings, durations, shadows
+│  ├─ [slug]/page.tsx                # catch-all landing route
+│  └─ api/
+│     └─ email-signup/route.ts       # Mailchimp Marketing API
 ├─ components/
 │  ├─ Button/
-│  ├─ Header/
-│  ├─ Footer/
-│  ├─ FooterSmall/
-│  ├─ FooterNano/
-│  ├─ PageTransition/
-│  ├─ SiteMenu/
-│  ├─ CookieBanner/
-│  ├─ Modal/
-│  ├─ EmailSignup/
-│  └─ Icon/
+│  ├─ Logo/
+│  ├─ LandingPageTemplate/           # composes Hero + body + CTA
+│  ├─ LandingHero/                   # frontmatter-driven hero
+│  ├─ LandingCTA/                    # frontmatter-driven CTA + EmailSignup
+│  ├─ MarkdownContent/               # body renderer
+│  └─ EmailSignup/                   # client form posting to /api/email-signup
 ├─ lib/
-│  └─ metadata.ts
+│  ├─ landing-pages.ts               # registry of slug → { title, description, ogImage }
+│  ├─ markdown.ts                    # loader + image-path resolver
+│  └─ metadata.ts                    # Next Metadata helpers
+├─ content/
+│  └─ landing/
+│     └─ <slug>.md                   # one file per landing page
 ├─ public/
-├─ next.config.ts
-├─ netlify.toml
-├─ tsconfig.json
+│  ├─ fonts/
+│  ├─ images/
+│  └─ blog/
+│     └─ <slug>/                     # per-page image folder
+├─ .env.example
 └─ package.json
+```
 
-Folder structure rules:
-- Put route files under `app/`
-- Keep page-specific sections inside that route’s own `components/` folder
-- Keep shared UI primitives and cross-page components in top-level `components/`
-- Keep small shared helpers like metadata builders in `lib/`
-- Keep component files grouped by folder:
-  - `Component.tsx`
-  - `Component.module.css`
-  - `index.ts` when useful
-- Use route groups like `(legal)` when it helps group related pages without affecting the URL
-- Put server API handlers in `app/api/.../route.ts`
-- Keep global design tokens in top-level CSS files under `app/`
+## Adding a new landing page
 
-Code style:
-- Keep components small and composable
-- Prefer one folder per component with `Component.tsx`, `Component.module.css`, and `index.ts`
-- Use semicolons
-- Prefer straightforward React code over heavy abstractions
-- Create new abstractions only if logic repeats 3+ times
-- Keep presentational components simple and move interactive behavior into client components
-- Use accessible semantics, keyboard support, and visible focus states
-- Respect `prefers-reduced-motion`
-- Use import aliases like `@/components/...` and `@/lib/...`
+1. Add an entry to `lib/landing-pages.ts`:
+   ```ts
+   { slug: "my-new-page", title: "...", description: "...", ogImage: "/blog/my-new-page/og.png" }
+   ```
+2. Create `content/landing/my-new-page.md` with required frontmatter (see template below).
+3. Drop images into `public/blog/my-new-page/` and reference them in the MD by bare filename.
+4. Done — the page is live at `/my-new-page`.
 
-App Router rules:
-- Default to Server Components
-- Use Client Components only for animations, state, effects, browser APIs, menus, modals, carousels, or other interactive UI
-- Use a single-language setup for now
-- Keep routing simple
-- Use `generateMetadata` for SEO where useful
+Only slugs in the registry are built (`dynamicParams = false`).
 
-Metadata and SEO:
-- Use Next.js Metadata API via `generateMetadata`
-- Create a shared helper in `lib/metadata.ts` for `metadataBase`, canonical URLs, and reusable metadata builders
-- Set per-page `title`, `description`, `openGraph`, and `twitter`
-- Use a shared OG image where appropriate
-- Include canonical URLs for each page
-- Add `robots.ts` and `sitemap.ts`
-- Add JSON-LD structured data for `Organization` and `WebSite` where appropriate
-- Keep the implementation clean and server-first
-- Do not use third-party SEO libraries unless absolutely necessary
+## Markdown frontmatter contract
 
-AI/crawler discoverability:
-- Include clean semantic HTML
-- Add JSON-LD structured data
-- Add `robots.ts` and `sitemap.ts`
-- Optionally include `llms.txt` for AI-readable site context if requested
+Every landing-page `.md` file MUST include:
 
-Styling rules:
-- Use CSS Modules for component styling
-- Use native CSS nesting inside modules — this is the CSS Nesting spec (supported in all modern browsers, no preprocessor needed). Nest child selectors and pseudo-classes directly inside the parent rule, the same way you would in SCSS:
-  ```css
-  .footer {
-    display: flex;
+```yaml
+---
+hero:
+  eyebrow: "optional small label"
+  title: "Required headline"
+  subtitle: "optional"
+  image: "hero.png"           # resolved against /blog/<slug>/
+  imageAlt: "describes image"
+cta:
+  title: "Required CTA headline"
+  subtitle: "optional"
+  buttonLabel: "Get notified"
+  placeholder: "you@company.com"
+  tags: ["landing:my-new-page"]   # forwarded to Mailchimp
+---
 
-    .footerText {
-      font-size: var(--text-sm);
-    }
+Body markdown goes here. Images use bare filenames:
+![alt](some-image.png)
+```
 
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-  ```
-- Reuse global design tokens from CSS custom properties for:
-  - spacing
-  - radius
-  - colors
-  - typography
-  - shadows
-- Use `rem` units
-- Match a clean, minimal, premium healthcare-tech aesthetic
-- Use lots of whitespace, restrained color, rounded surfaces, subtle borders, and sharp typography
-- Keep motion subtle, mostly opacity and transform
-- Avoid flashy effects
+## Image path resolution
 
-Global design system to preserve:
-- Inter Variable font
-- Utility typography classes like `type-hero`, `type-display`, `type-title`, `type-body-regular`, `type-body-medium`
-- Utility layout classes like `container-md`, `container-rg`, `container-sm`, `row`, `col`
-- Token files for `colors.css`, `spacing.css`, `radius.css`, `typography.css`, and a shared `globals.css`
-- Button variants such as `primary`, `secondary`, `outline`, `ghost`, `ghostOnDark`, `cta`
-- Rounded pill buttons and soft transitions
-- Sticky translucent header
-- High-end editorial landing-page spacing
+Inside `content/landing/<slug>.md` and in the `hero.image` frontmatter:
 
-Animation rules:
-- Use `motion/react`, not Framer Motion
-- Use `useReducedMotion()` where appropriate
-- Page transitions should be gentle fade/slide-in
-- Menus and overlays should animate with opacity + translateY
-- Use dynamic import with `ssr: false` for browser-only animated libraries when needed
+- bare filename (`hero.png`) → resolves to `/blog/<slug>/hero.png`
+- absolute path (`/anything`) → used verbatim
+- full URL (`https://...`) → used verbatim
 
-Implementation details to preserve:
-- Use `next/image` for all managed images
-- Use normal Next.js internal navigation
-- Use server-rendered sections by default
-- Use client-only components for menu, modal, ticker, transitions, and any browser-dependent interaction
-- Use an API route for email signup if needed
-- Keep code Netlify-friendly
+Image folder MUST match the slug exactly: `public/blog/<slug>/`.
 
-Output requirements:
-1. Generate the full file structure.
-2. Create complete code files, not pseudo-code.
-3. Include global CSS token files and component CSS modules.
-4. Include accessible states and reduced-motion handling.
-5. Keep the implementation close to a real, maintainable production repo.
+## Mailchimp signup
 
-Quality bar:
-- No unnecessary client components
-- No extra dependencies
-- Clean TypeScript types
-- Mobile responsive
-- Keyboard accessible
-- Consistent with a polished startup marketing site in healthcare
-- Ready to run with `npm install` and `npm run dev`
+`/api/email-signup` calls Mailchimp's Marketing API (`PUT /lists/{id}/members/{hash}`) with `status_if_new: "pending"` (double opt-in). Env vars required:
 
-If a visual reference is provided, match it closely. If something is ambiguous, prefer the existing codebase patterns over inventing a new system.
+- `MAILCHIMP_API_KEY`
+- `MAILCHIMP_SERVER_PREFIX` (e.g. `us1`)
+- `MAILCHIMP_AUDIENCE_ID`
+
+See `.env.example`. The form will return a 503 with a friendly message when env vars are missing, so local dev works without keys.
+
+## Theming (light + dark)
+
+The site supports both light and dark modes. The mechanism:
+
+- **Tokens** are defined twice in `app/colors.css`: on `:root` (light defaults) and on `[data-theme="dark"]` (dark overrides). Shadows in `app/motion.css` follow the same pattern.
+- **No-flash init**: `lib/theme-init.ts` exports an inline script that runs in `<head>` before paint. It reads `localStorage["theme"]` (`"light"` or `"dark"`), falls back to OS preference, and sets `data-theme` + `color-scheme` on `<html>`.
+- **Toggle**: `components/ThemeToggle/` is mounted in the root layout (fixed top-right). It writes the user's choice to `localStorage`.
+- **Component rule**: NEVER hardcode `#fff`, `#000`, or `rgb(255 255 255 / X)` / `rgb(0 0 0 / X)` in component CSS. Use semantic tokens:
+  - Surfaces: `--color-surface`, `--color-surface-raised`, `--color-surface-subtle`
+  - Borders: `--color-border`, `--color-border-strong`
+  - Text: `--color-text-primary`, `--color-text-secondary`, `--color-text-tertiary`, `--color-text-fade-stop` (for gradient-text effects)
+  - Hover overlays: `--color-overlay-faint`, `--color-overlay`, `--color-overlay-strong`
+  - Status: `--color-danger`
+- **SVGs**: use `currentColor` so they inherit the themed text color (see `components/Logo/parseLogo.ts` which auto-converts `"black"` fills to `currentColor`).
+
+## Design system
+
+Framer-inspired aesthetic. Tokens live in `app/*.css` and are loaded through `globals.css`:
+
+- **Colors**: themed surfaces (`--color-surface`, `--color-surface-raised`, `--color-surface-subtle`), translucent borders, electric blue accent (`--color-accent`, `--color-accent-strong`, `--color-accent-soft`).
+- **Spacing**: 4px grid, with `--space-1` through `--space-64`.
+- **Radii**: `--radius-xs` → `--radius-3xl` plus `--radius-full` for pills.
+- **Typography**: `Die Grotesk A` (already shipped). Utility classes: `type-hero`, `type-display`, `type-title`, `type-subtitle`, `type-body-regular`, `type-body-medium`, `type-small`, `type-eyebrow`.
+- **Motion**: easings `--ease-expo-out`, `--ease-quart-out`, `--ease-soft`, `--ease-overshoot`. Durations `--duration-fast` (150ms) → `--duration-xslow` (650ms).
+- **Containers**: `.container-sm` / `.container-md` / `.container-lg` / `.container-xl` apply max-width + page padding.
+
+Button variants: `primary`, `secondary`, `outline`, `ghost`, `ghostOnDark`, `cta`. All pill-shaped via `--radius-full`.
+
+## Conventions
+
+- **Server Components by default**; opt into Client only for state, animation, browser APIs (`LandingHero`, `EmailSignup`).
+- One folder per component: `Component.tsx`, `Component.module.css`, `index.ts`.
+- Import via `@/components/...`, `@/lib/...`.
+- Native CSS nesting inside `.module.css` (no preprocessor).
+- Respect `prefers-reduced-motion` (handled globally in `globals.css` + via `useReducedMotion()` in Framer Motion components).
+- Semicolons, accessible focus rings, keyboard-friendly forms.
+- Add new abstractions only when logic repeats 3+ times.
+
+## Run
+
+```
+npm install
+npm run dev
+```
+
+Build:
+```
+npm run build
 ```
