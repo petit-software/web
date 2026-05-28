@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import type { LogoShape, LogoSvgData } from "./parseLogo";
 
 interface LogoSvgProps {
@@ -47,7 +47,7 @@ function isLine(shape: LogoShape) {
 }
 
 function isGlyph(shape: LogoShape) {
-  return shape.stroke == null && shape.fill === "black";
+  return shape.stroke == null && shape.fill === "currentColor";
 }
 
 export default function LogoSvg({ data, width, height, className }: LogoSvgProps) {

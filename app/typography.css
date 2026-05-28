@@ -1,47 +1,57 @@
 :root {
-  --font-sans: "Die Grotesk A", system-ui, sans-serif;
+  --font-sans: "Die Grotesk A", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
   --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
-  --text-6xl: 3.75rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --text-6xl:  3.75rem;
+  --text-7xl:  4.5rem;
+  --text-8xl:  6rem;
 
-  --leading-tight: 1.2;
-  --leading-snug: 1.35;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
 
-  --tracking-x-tight: -0.025em;
-  --tracking-tight: -0.015em;
-  --tracking-normal: 0em;
-  --tracking-wide: 0.015em;
+  --tracking-x-tight: -0.03em;
+  --tracking-tight:   -0.015em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.015em;
 }
 
 .type-hero {
-  font-size: clamp(var(--text-4xl), 6vw, var(--text-6xl));
+  font-size: clamp(var(--text-4xl), 7vw, var(--text-7xl));
   font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-x-tight);
 }
 
 .type-display {
-  font-size: clamp(var(--text-3xl), 4.5vw, var(--text-5xl));
+  font-size: clamp(var(--text-3xl), 5vw, var(--text-6xl));
   font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-x-tight);
 }
 
 .type-title {
-  font-size: clamp(var(--text-2xl), 3vw, var(--text-3xl));
+  font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
   font-weight: 600;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-x-tight);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+}
+
+.type-subtitle {
+  font-size: clamp(var(--text-lg), 1.5vw, var(--text-xl));
+  font-weight: 400;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
 }
 
 .type-body-regular {
@@ -60,9 +70,16 @@
   font-size: var(--text-sm);
   font-weight: 400;
   line-height: var(--leading-snug);
-  letter-spacing: var(--tracking-wide);
 }
 
-.centered-text{
+.type-eyebrow {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.centered-text {
   text-align: center;
 }

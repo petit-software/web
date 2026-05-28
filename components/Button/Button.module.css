@@ -2,7 +2,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2-5) var(--space-3-5);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
   border: 1px solid transparent;
   border-radius: var(--radius-full);
   font-family: var(--font-sans);
@@ -10,11 +11,21 @@
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-soft),
+    color var(--duration-fast) var(--ease-soft),
+    border-color var(--duration-fast) var(--ease-soft),
+    transform var(--duration-fast) var(--ease-soft),
+    opacity var(--duration-fast) var(--ease-soft);
 
   &:focus-visible {
-    outline: 2px solid currentColor;
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
   }
 
   &:disabled {
@@ -24,30 +35,32 @@
 }
 
 .primary {
-  background-color: var(--color-black);
-  color: var(--color-white);
+  background-color: var(--color-text-primary);
+  color: var(--color-surface);
 
   &:hover:not(:disabled) {
-    opacity: 0.85;
+    opacity: 0.88;
   }
 }
 
 .secondary {
-  background-color: var(--color-gray-100);
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-primary);
+  border-color: var(--color-border);
 
   &:hover:not(:disabled) {
-    background-color: var(--color-gray-200);
+    background-color: var(--color-surface-raised);
+    border-color: var(--color-border-strong);
   }
 }
 
 .outline {
   background-color: transparent;
   color: var(--color-text-primary);
-  border-color: var(--color-border);
+  border-color: var(--color-border-strong);
 
   &:hover:not(:disabled) {
-    background-color: var(--color-gray-50);
+    background-color: var(--color-overlay-faint);
   }
 }
 
@@ -56,7 +69,7 @@
   color: var(--color-text-primary);
 
   &:hover:not(:disabled) {
-    background-color: var(--color-gray-100);
+    background-color: var(--color-overlay);
   }
 }
 
@@ -65,17 +78,20 @@
   color: var(--color-white);
 
   &:hover:not(:disabled) {
-    background-color: rgb(255 255 255 / 0.1);
+    background-color: rgb(255 255 255 / 0.10);
   }
 }
 
 .cta {
-  background-color: var(--color-black);
-  color: var(--color-white);
-  padding: var(--space-3) var(--space-6);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  padding: var(--space-4) var(--space-8);
   font-size: var(--text-base);
+  font-weight: 500;
+  box-shadow: 0 0 0 1px var(--color-border), 0 12px 32px -8px var(--color-accent-soft);
 
   &:hover:not(:disabled) {
-    opacity: 0.85;
+    background-color: var(--color-accent-strong);
+    transform: translateY(-1px);
   }
 }
