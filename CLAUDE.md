@@ -54,22 +54,33 @@ Marketing site for Petit. The codebase is built around a **landing-page template
 
 ## Adding a new landing page
 
-1. Add an entry to `lib/landing-pages.ts`:
-   ```ts
-   { slug: "my-new-page", title: "...", description: "...", ogImage: "/blog/my-new-page/og.png" }
-   ```
-2. Create `content/landing/my-new-page.md` with required frontmatter (see template below).
-3. Drop images into `public/blog/my-new-page/` and reference them in the MD by bare filename.
+1. Add the slug to `landingSlugs` in `lib/landing-pages.ts` — the registry is now just a slug list. Per-page metadata lives in markdown frontmatter.
+2. Create `content/landing/my-new-page.md` with the full frontmatter contract (`seo`, `aeo`, `hero`, `cta`). See `content/landing/README.md` for the authoring guide.
+3. Drop images into `public/blog/my-new-page/` (including a 1200×630 `og.png`) and reference them in the MD by bare filename.
 4. Done — the page is live at `/my-new-page`.
 
 Only slugs in the registry are built (`dynamicParams = false`).
 
 ## Markdown frontmatter contract
 
-Every landing-page `.md` file MUST include:
+Every landing-page `.md` file MUST include `seo` (description + ogImage), `aeo` (summary), `hero` (title), and `cta` (title). Build throws if any required field is missing. See `content/landing/README.md` for the canonical reference; the abbreviated contract:
 
 ```yaml
 ---
+seo:
+  title: "Optional override; defaults to hero.title"
+  description: "1–2 sentence meta description."          # REQUIRED
+  ogImage: "og.png"                                       # REQUIRED — 1200x630 in /blog/<slug>/
+  ogImageAlt: "Describes the OG image"
+  keywords: ["primary keyword", "another"]
+  publishedAt: "2026-05-29T00:00:00.000Z"
+  author: "Petit"
+aeo:
+  question: "The primary question this page answers?"
+  summary: "1–3 sentence direct answer."                  # REQUIRED — rendered + emitted as JSON-LD
+  faqs:
+    - q: "First question?"
+      a: "Plain-text answer."
 hero:
   eyebrow: "optional small label"
   title: "Required headline"
@@ -81,12 +92,25 @@ cta:
   subtitle: "optional"
   buttonLabel: "Get notified"
   placeholder: "you@company.com"
-  segmentId: "uuid-from-resend"   # optional; Resend segment new signups land in
+  segmentId: "uuid-from-resend"
 ---
 
 Body markdown goes here. Images use bare filenames:
 ![alt](some-image.png)
 ```
+
+## SEO + AEO
+
+Each landing page is SEO- and AEO-ready out of the box:
+
+- **Meta + OG + Twitter** come from `seo.*` via `lib/metadata.ts` (`landingMetadata()`).
+- **JSON-LD** (`@graph` with `WebPage` + `Article` + optional `FAQPage`) is built in `lib/structured-data.ts` (`landingJsonLd()`) and injected from `app/[slug]/page.tsx` as `<script type="application/ld+json">`.
+- **`LandingAnswer`** renders `aeo.summary` as a calm "The short answer" lede directly under the hero — first content an answer engine encounters.
+- **`LandingFAQ`** renders `aeo.faqs` (if present) as a `<dl>` Q&A list above the CTA, mirroring the `FAQPage` structured data for human readers.
+
+## House style
+
+**No emojis in landing-page content.** Body, headings, lists, tables, callouts, CTAs — all text. Brand voice is calm and confident; emojis undercut it. This rule is documented in `content/landing/README.md` and applies to any new landing-page content.
 
 ## Image path resolution
 
@@ -97,6 +121,18 @@ Inside `content/landing/<slug>.md` and in the `hero.image` frontmatter:
 - full URL (`https://...`) → used verbatim
 
 Image folder MUST match the slug exactly: `public/blog/<slug>/`.
+
+## Body layout directives
+
+The markdown body supports container directives (via `remark-directive`) for layouts that escape the default prose column:
+
+- `:::full-width` — edge-to-edge breakout; images inside lose their rounded frame and use `sizes="100vw"`.
+- `:::wide` — wider than prose, still padded (good for tables, diagrams).
+- `:::columns` + `:::column` — multi-column grid. Default is responsive auto-fit; `{variant=halves}` forces fixed 1/2+1/2; `{variant=thirds}` forces fixed 1/3+1/3+1/3 (both collapse to a single column under ~40rem).
+- `:::callout{variant=tip|warn|note}` — accented highlight box; default is the accent blue.
+- `::button[Label]{variant=… href=…}` — pill button; default `href` is `#signup` (the email form on `LandingCTA`, which has `id="signup"`). Variants mirror the Button component (`cta` default, plus `primary`/`secondary`/`outline`/`ghost`). Multiple buttons can be grouped inline with `:::buttons`.
+
+Directives are configured in `components/MarkdownContent/MarkdownContent.tsx` (`DIRECTIVE_NAMES` + `remarkLandingDirectives`) and styled in `MarkdownContent.module.css` under `.prose :global(.md-…)`. Author-facing reference: `content/landing/README.md`.
 
 ## Resend signup
 

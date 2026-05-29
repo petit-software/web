@@ -1,24 +1,16 @@
-export interface LandingPage {
-  slug: string;
-  title: string;
-  description: string;
-  ogImage?: string;
+/**
+ * Registry of landing-page slugs. Each slug must have a matching
+ * `content/landing/<slug>.md` file. Per-page metadata (title, description,
+ * OG image, AEO summary, FAQs) lives in the markdown frontmatter — not here.
+ */
+export const landingSlugs = ["social-media-automation"] as const;
+
+export type LandingSlug = (typeof landingSlugs)[number];
+
+export function getLandingSlugs(): readonly string[] {
+  return landingSlugs;
 }
 
-export const landingPages: LandingPage[] = [
-  {
-    slug: "social-media-automation",
-    title: "Social Media Automation",
-    description:
-      "Automate posts, replies, and reporting across every channel from one calm dashboard.",
-    ogImage: "/blog/social-media-automation/og.png",
-  },
-];
-
-export function getLandingPage(slug: string): LandingPage | undefined {
-  return landingPages.find((page) => page.slug === slug);
-}
-
-export function getLandingSlugs(): string[] {
-  return landingPages.map((page) => page.slug);
+export function isLandingSlug(slug: string): slug is LandingSlug {
+  return (landingSlugs as readonly string[]).includes(slug);
 }

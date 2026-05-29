@@ -9,7 +9,7 @@ interface LandingCTAProps {
 
 export default function LandingCTA({ cta, source }: LandingCTAProps) {
   return (
-    <section className={styles.cta}>
+    <section id="signup" className={styles.cta}>
       <div className={`container-sm ${styles.inner}`}>
         <h2 className={`type-display ${styles.title}`}>{cta.title}</h2>
         {cta.subtitle && (
