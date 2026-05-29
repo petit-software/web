@@ -16,7 +16,7 @@ export default function LandingPageTemplate({ slug, content }: LandingPageTempla
   return (
     <div className="flex min-h-screen flex-col">
       <LandingHeader />
-      <main className="flex-1 pt-[68px]">
+      <main className="flex-1">
         <LandingHero hero={frontmatter.hero} slug={slug} />
         <LandingAnswer aeo={frontmatter.aeo} />
         <MarkdownContent slug={slug} body={body} />

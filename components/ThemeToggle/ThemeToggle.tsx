@@ -1,22 +1,43 @@
 "use client";
 
-import { MoonIcon, SunIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MinusIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
+type Theme = "light" | "dark" | "system";
+
+const NEXT: Record<Theme, Theme> = {
+  light: "dark",
+  dark: "system",
+  system: "light",
+};
+
+const LABEL: Record<Theme, string> = {
+  light: "Light theme — click for dark",
+  dark: "Dark theme — click for system",
+  system: "System theme — click for light",
+};
+
 export default function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const current = (mounted ? (theme as Theme | undefined) : undefined) ?? "system";
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={LABEL[current]}
+      title={LABEL[current]}
+      onClick={() => setTheme(NEXT[current])}
     >
-      <SunIcon className="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-      <MoonIcon className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+      {current === "light" && <SunIcon />}
+      {current === "dark" && <MoonIcon />}
+      {current === "system" && <MinusIcon />}
     </Button>
   );
 }
