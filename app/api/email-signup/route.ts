@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
+import { Resend } from "resend";
 
 interface SignupBody {
   email?: string;
-  tags?: string[];
   source?: string;
-}
-
-interface MailchimpError {
-  title?: string;
-  detail?: string;
-  status?: number;
+  segmentId?: string;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,42 +22,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
   }
 
-  const apiKey = process.env.MAILCHIMP_API_KEY;
-  const audienceId = process.env.MAILCHIMP_AUDIENCE_ID;
-  const serverPrefix = process.env.MAILCHIMP_SERVER_PREFIX;
-
-  if (!apiKey || !audienceId || !serverPrefix) {
-    console.error("[email-signup] Mailchimp env vars missing");
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[email-signup] RESEND_API_KEY missing");
     return NextResponse.json({ error: "Signup is not configured yet." }, { status: 503 });
   }
 
-  const subscriberHash = crypto.createHash("md5").update(email).digest("hex");
-  const url = `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${audienceId}/members/${subscriberHash}`;
+  if (body.source) {
+    console.log(`[email-signup] new signup from "${body.source}": ${email}`);
+  }
 
-  const payload = {
-    email_address: email,
-    status_if_new: "subscribed",
-    tags: body.tags ?? [],
-    merge_fields: body.source ? { SOURCE: body.source } : undefined,
-  };
+  const resend = new Resend(apiKey);
+  const segmentId = body.segmentId?.trim();
 
-  const mcRes = await fetch(url, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${Buffer.from(`anystring:${apiKey}`).toString("base64")}`,
-    },
-    body: JSON.stringify(payload),
+  const { error } = await resend.contacts.create({
+    email,
+    unsubscribed: false,
+    segments: segmentId ? [{ id: segmentId }] : undefined,
   });
 
-  if (!mcRes.ok) {
-    const err = (await mcRes.json().catch(() => ({}))) as MailchimpError;
-    console.error("[email-signup] Mailchimp error", err);
-    const message =
-      err.title === "Member Exists"
-        ? "You're already on the list."
-        : err.detail ?? "We couldn't sign you up. Please try again.";
-    return NextResponse.json({ error: message }, { status: mcRes.status });
+  if (error) {
+    const alreadyExists = /already exists/i.test(error.message ?? "");
+    if (alreadyExists) {
+      return NextResponse.json({ ok: true });
+    }
+    console.error("[email-signup] Resend error", error);
+    return NextResponse.json(
+      { error: error.message ?? "We couldn't sign you up. Please try again." },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true });

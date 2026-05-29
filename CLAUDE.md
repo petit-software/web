@@ -27,7 +27,7 @@ Marketing site for Petit. The codebase is built around a **landing-page template
 │  ├─ motion.css                     # easings, durations, shadows
 │  ├─ [slug]/page.tsx                # catch-all landing route
 │  └─ api/
-│     └─ email-signup/route.ts       # Mailchimp Marketing API
+│     └─ email-signup/route.ts       # Resend Contacts API
 ├─ components/
 │  ├─ Button/
 │  ├─ Logo/
@@ -81,7 +81,7 @@ cta:
   subtitle: "optional"
   buttonLabel: "Get notified"
   placeholder: "you@company.com"
-  tags: ["landing:my-new-page"]   # forwarded to Mailchimp
+  segmentId: "uuid-from-resend"   # optional; Resend segment new signups land in
 ---
 
 Body markdown goes here. Images use bare filenames:
@@ -98,15 +98,17 @@ Inside `content/landing/<slug>.md` and in the `hero.image` frontmatter:
 
 Image folder MUST match the slug exactly: `public/blog/<slug>/`.
 
-## Mailchimp signup
+## Resend signup
 
-`/api/email-signup` calls Mailchimp's Marketing API (`PUT /lists/{id}/members/{hash}`) with `status_if_new: "pending"` (double opt-in). Env vars required:
+`/api/email-signup` creates a Resend contact via the official `resend` SDK (`resend.contacts.create({ email, segments })`). Audiences are deprecated in Resend — contacts are global and grouped via segments for broadcast targeting. Duplicate emails are treated as success (the SDK returns an "already exists" error which the route swallows). The route logs `source` (the landing slug) server-side.
 
-- `MAILCHIMP_API_KEY`
-- `MAILCHIMP_SERVER_PREFIX` (e.g. `us1`)
-- `MAILCHIMP_AUDIENCE_ID`
+**Per-form segments**: each landing page declares its own `cta.segmentId` in frontmatter. `<EmailSignup />` posts that segment ID to `/api/email-signup`, which adds the new contact to it. This lets the same component drop into multiple pages with different downstream segments. The segment ID is sent from the client — trusted because the worst case (someone POSTing a different segment ID) just shuffles signups between segments on the same Resend account.
 
-See `.env.example`. The form will return a 503 with a friendly message when env vars are missing, so local dev works without keys.
+Env vars:
+
+- `RESEND_API_KEY` — required. Must be a **full-access** key; sending-only keys return 401 `restricted_api_key`.
+
+The SDK returns `{ data, error }` and never throws on API errors — this route checks `error` explicitly (gotcha #5 from the Resend skill). The form returns a 503 with a friendly message when the API key is missing, so local dev works without keys.
 
 ## Theming (light + dark)
 

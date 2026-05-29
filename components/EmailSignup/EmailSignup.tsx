@@ -7,8 +7,8 @@ import styles from "./EmailSignup.module.css";
 interface EmailSignupProps {
   buttonLabel?: string;
   placeholder?: string;
-  tags?: string[];
   source?: string;
+  segmentId?: string;
 }
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -16,8 +16,8 @@ type Status = "idle" | "loading" | "success" | "error";
 export default function EmailSignup({
   buttonLabel = "Get notified",
   placeholder = "you@company.com",
-  tags,
   source,
+  segmentId,
 }: EmailSignupProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -32,7 +32,7 @@ export default function EmailSignup({
       const res = await fetch("/api/email-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, tags, source }),
+        body: JSON.stringify({ email, source, segmentId }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {

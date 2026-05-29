@@ -15,7 +15,7 @@ export interface CTAFrontmatter {
   subtitle?: string;
   buttonLabel?: string;
   placeholder?: string;
-  tags?: string[];
+  segmentId?: string;
 }
 
 export interface LandingFrontmatter {

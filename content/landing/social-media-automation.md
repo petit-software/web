@@ -10,7 +10,7 @@ cta:
   subtitle: "Join the early access list. We'll send you an invite as soon as we open seats."
   buttonLabel: "Get early access"
   placeholder: "you@company.com"
-  tags: ["landing:social-media-automation"]
+  segmentId: "4e10e215-6faa-4fa8-9dcc-25fdaede7982"
 ---
 
 ## Stop posting. Start orchestrating.

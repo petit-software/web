@@ -18,8 +18,8 @@ export default function LandingCTA({ cta, source }: LandingCTAProps) {
         <EmailSignup
           buttonLabel={cta.buttonLabel}
           placeholder={cta.placeholder}
-          tags={cta.tags}
           source={source}
+          segmentId={cta.segmentId}
         />
       </div>
     </section>
