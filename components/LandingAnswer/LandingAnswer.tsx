@@ -1,5 +1,6 @@
+import { LightbulbIcon } from "lucide-react";
 import type { AEOFrontmatter } from "@/lib/markdown";
-import styles from "./LandingAnswer.module.css";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface LandingAnswerProps {
   aeo: AEOFrontmatter;
@@ -7,13 +8,15 @@ interface LandingAnswerProps {
 
 export default function LandingAnswer({ aeo }: LandingAnswerProps) {
   return (
-    <section className={styles.section} aria-labelledby="page-answer">
-      <div className={`container-md ${styles.inner}`}>
-        <p id="page-answer" className={`type-eyebrow ${styles.eyebrow}`}>
-          The short answer
-        </p>
-        <p className={styles.summary}>{aeo.summary}</p>
-      </div>
+    <section
+      aria-labelledby="page-answer"
+      className="mx-auto w-full max-w-3xl px-6 pt-8 md:pt-12"
+    >
+      <Alert>
+        <LightbulbIcon />
+        <AlertTitle id="page-answer">The short answer</AlertTitle>
+        <AlertDescription>{aeo.summary}</AlertDescription>
+      </Alert>
     </section>
   );
 }

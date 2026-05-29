@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import type { HeroFrontmatter } from "@/lib/markdown";
-import styles from "./LandingHero.module.css";
 
 interface LandingHeroProps {
   hero: HeroFrontmatter;
@@ -24,40 +23,44 @@ export default function LandingHero({ hero, slug }: LandingHeroProps) {
         };
 
   return (
-    <section className={styles.hero}>
-      <div className={`container-md ${styles.inner}`}>
-        {hero.eyebrow && (
-          <motion.span className={`type-eyebrow ${styles.eyebrow}`} {...fadeUp(0)}>
-            {hero.eyebrow}
-          </motion.span>
-        )}
+    <section className="mx-auto w-full max-w-4xl px-6 pt-16 pb-12 text-center md:pt-24 md:pb-16">
+      {hero.eyebrow && (
+        <motion.span
+          className="text-muted-foreground mb-4 inline-block text-xs font-medium tracking-wider uppercase"
+          {...fadeUp(0)}
+        >
+          {hero.eyebrow}
+        </motion.span>
+      )}
 
-        <motion.h1 className={`type-hero ${styles.title}`} {...fadeUp(0.05)}>
-          {hero.title}
-        </motion.h1>
+      <motion.h1
+        className="text-4xl font-semibold tracking-tight text-balance md:text-6xl"
+        {...fadeUp(0.05)}
+      >
+        {hero.title}
+      </motion.h1>
 
-        {hero.subtitle && (
-          <motion.p
-            className={`type-subtitle ${styles.subtitle} text-secondary`}
-            {...fadeUp(0.12)}
-          >
-            {hero.subtitle}
-          </motion.p>
-        )}
+      {hero.subtitle && (
+        <motion.p
+          className="text-muted-foreground mt-4 text-lg text-balance md:text-xl"
+          {...fadeUp(0.12)}
+        >
+          {hero.subtitle}
+        </motion.p>
+      )}
 
-        {imageSrc && (
-          <motion.div className={styles.imageWrap} {...fadeUp(0.2)}>
-            <Image
-              src={imageSrc}
-              alt={hero.imageAlt ?? ""}
-              width={1600}
-              height={900}
-              priority
-              className={styles.image}
-            />
-          </motion.div>
-        )}
-      </div>
+      {imageSrc && (
+        <motion.div className="mt-12 overflow-hidden rounded-xl border" {...fadeUp(0.2)}>
+          <Image
+            src={imageSrc}
+            alt={hero.imageAlt ?? ""}
+            width={1600}
+            height={900}
+            priority
+            className="h-auto w-full"
+          />
+        </motion.div>
+      )}
     </section>
   );
 }

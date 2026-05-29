@@ -5,10 +5,13 @@ Marketing site for Petit. The codebase is built around a **landing-page template
 ## Stack
 
 - **Next.js 15** App Router, **React 19**, **TypeScript**
-- **Framer Motion** (`framer-motion`) for animation — not `motion/react`
-- **CSS Modules** + native CSS nesting + global token files (NO Tailwind, NO shadcn, NO styled-components)
-- **gray-matter** + **react-markdown** + **remark-gfm** for landing-page content
+- **Tailwind CSS v4** + **shadcn/ui** (radix base, `nova` style) for all UI
+- **next-themes** for light/dark mode (mounts `.dark` on `<html>`)
+- **Framer Motion** (`framer-motion`) for hero entry animations
+- **gray-matter** + **react-markdown** + **remark-gfm** + **remark-directive** for landing-page content
+- **@tailwindcss/typography** for prose styling in markdown bodies
 - **next/image** for managed images
+- **Resend** (`resend` SDK) for email signups
 - **Netlify** deployment via `@netlify/plugin-nextjs`
 - **npm** package manager
 
@@ -17,44 +20,46 @@ Marketing site for Petit. The codebase is built around a **landing-page template
 ```
 /
 ├─ app/
-│  ├─ layout.tsx
-│  ├─ page.tsx                       # redirects to first landing page
-│  ├─ globals.css
-│  ├─ colors.css                     # design tokens
-│  ├─ spacing.css                    # 4px-grid spacing scale
-│  ├─ radius.css
-│  ├─ typography.css
-│  ├─ motion.css                     # easings, durations, shadows
+│  ├─ layout.tsx                     # wraps body in next-themes ThemeProvider
+│  ├─ page.tsx                       # delegates to (site)/temp
+│  ├─ globals.css                    # Tailwind v4 + shadcn theme + Die Grotesk @font-face
 │  ├─ [slug]/page.tsx                # catch-all landing route
+│  ├─ (site)/                        # non-landing routes
 │  └─ api/
 │     └─ email-signup/route.ts       # Resend Contacts API
 ├─ components/
-│  ├─ Button/
-│  ├─ Logo/
-│  ├─ LandingPageTemplate/           # composes Hero + body + CTA
-│  ├─ LandingHero/                   # frontmatter-driven hero
-│  ├─ LandingCTA/                    # frontmatter-driven CTA + EmailSignup
-│  ├─ MarkdownContent/               # body renderer
-│  └─ EmailSignup/                   # client form posting to /api/email-signup
+│  ├─ ui/                            # shadcn primitives (DO NOT hand-edit unless necessary)
+│  ├─ ThemeProvider.tsx              # next-themes wrapper (client)
+│  ├─ ThemeToggle/                   # DropdownMenu + sun/moon icons
+│  ├─ Logo/                          # animated SVG (kept custom)
+│  ├─ LogoMark/                      # static SVG mark (kept custom)
+│  ├─ LandingPageTemplate/           # composes Hero + Answer + Body + FAQ + CTA
+│  ├─ LandingHero/                   # frontmatter-driven hero with Framer Motion fade-up
+│  ├─ LandingAnswer/                 # shadcn Alert wrapping aeo.summary
+│  ├─ LandingFAQ/                    # shadcn Accordion over aeo.faqs
+│  ├─ LandingCTA/                    # shadcn Card wrapping EmailSignup
+│  ├─ LandingHeader/                 # header with LogoMark + ThemeToggle
+│  ├─ MarkdownContent/               # body renderer; maps directives to shadcn primitives
+│  └─ EmailSignup/                   # client form: Field + InputGroup + InputGroupButton
 ├─ lib/
-│  ├─ landing-pages.ts               # registry of slug → { title, description, ogImage }
-│  ├─ markdown.ts                    # loader + image-path resolver
-│  └─ metadata.ts                    # Next Metadata helpers
+│  ├─ utils.ts                       # shadcn cn() helper
+│  ├─ landing-pages.ts               # registry of landing slugs
+│  ├─ markdown.ts                    # loader + frontmatter types + image-path resolver
+│  ├─ metadata.ts                    # Next Metadata helpers
+│  └─ structured-data.ts             # JSON-LD generation
 ├─ content/
-│  └─ landing/
-│     └─ <slug>.md                   # one file per landing page
+│  └─ landing/<slug>.md              # one file per landing page
 ├─ public/
-│  ├─ fonts/
-│  ├─ images/
-│  └─ blog/
-│     └─ <slug>/                     # per-page image folder
-├─ .env.example
+│  ├─ fonts/                         # Die Grotesk A woff2 files
+│  └─ blog/<slug>/                   # per-page image folder
+├─ components.json                   # shadcn config
+├─ postcss.config.mjs
 └─ package.json
 ```
 
 ## Adding a new landing page
 
-1. Add the slug to `landingSlugs` in `lib/landing-pages.ts` — the registry is now just a slug list. Per-page metadata lives in markdown frontmatter.
+1. Add the slug to `landingSlugs` in `lib/landing-pages.ts` — the registry is just a slug list. Per-page metadata lives in markdown frontmatter.
 2. Create `content/landing/my-new-page.md` with the full frontmatter contract (`seo`, `aeo`, `hero`, `cta`). See `content/landing/README.md` for the authoring guide.
 3. Drop images into `public/blog/my-new-page/` (including a 1200×630 `og.png`) and reference them in the MD by bare filename.
 4. Done — the page is live at `/my-new-page`.
@@ -105,8 +110,8 @@ Each landing page is SEO- and AEO-ready out of the box:
 
 - **Meta + OG + Twitter** come from `seo.*` via `lib/metadata.ts` (`landingMetadata()`).
 - **JSON-LD** (`@graph` with `WebPage` + `Article` + optional `FAQPage`) is built in `lib/structured-data.ts` (`landingJsonLd()`) and injected from `app/[slug]/page.tsx` as `<script type="application/ld+json">`.
-- **`LandingAnswer`** renders `aeo.summary` as a calm "The short answer" lede directly under the hero — first content an answer engine encounters.
-- **`LandingFAQ`** renders `aeo.faqs` (if present) as a `<dl>` Q&A list above the CTA, mirroring the `FAQPage` structured data for human readers.
+- **`LandingAnswer`** renders `aeo.summary` inside a shadcn `Alert` — first content an answer engine encounters.
+- **`LandingFAQ`** renders `aeo.faqs` (if present) as a shadcn `Accordion`, mirroring the `FAQPage` structured data for human readers.
 
 ## House style
 
@@ -124,15 +129,18 @@ Image folder MUST match the slug exactly: `public/blog/<slug>/`.
 
 ## Body layout directives
 
-The markdown body supports container directives (via `remark-directive`) for layouts that escape the default prose column:
+The markdown body supports container directives (via `remark-directive`) that map to shadcn primitives or Tailwind utility classes inside `components/MarkdownContent/MarkdownContent.tsx`:
 
-- `:::full-width` — edge-to-edge breakout; images inside lose their rounded frame and use `sizes="100vw"`.
-- `:::wide` — wider than prose, still padded (good for tables, diagrams).
-- `:::columns` + `:::column` — multi-column grid. Default is responsive auto-fit; `{variant=halves}` forces fixed 1/2+1/2; `{variant=thirds}` forces fixed 1/3+1/3+1/3 (both collapse to a single column under ~40rem).
-- `:::callout{variant=tip|warn|note}` — accented highlight box; default is the accent blue.
-- `::button[Label]{variant=… href=…}` — pill button; default `href` is `#signup` (the email form on `LandingCTA`, which has `id="signup"`). Variants mirror the Button component (`cta` default, plus `primary`/`secondary`/`outline`/`ghost`). Multiple buttons can be grouped inline with `:::buttons`.
+| Directive | Output |
+| --- | --- |
+| `:::full-width` | Negative-margin breakout `<div>` that escapes the prose column. |
+| `:::wide` | Wider container with padding (for tables, diagrams). |
+| `:::columns{variant=halves\|thirds}` + `:::column` | Responsive Tailwind grid. |
+| `:::callout{variant=tip\|warn\|note}` | shadcn `<Alert>` with a Lucide icon (`Lightbulb` / `AlertTriangle` / `Info`). |
+| `::button[Label]{variant=… href=…}` | shadcn `<Button asChild>` wrapping an `<a>`. Default `href` is `#signup`. Variants: `default` / `cta` / `primary` (→ default), `secondary`, `outline`, `ghost`, `warn` (→ destructive), `link`. |
+| `:::buttons` | Flex-wrap group for inline buttons. |
 
-Directives are configured in `components/MarkdownContent/MarkdownContent.tsx` (`DIRECTIVE_NAMES` + `remarkLandingDirectives`) and styled in `MarkdownContent.module.css` under `.prose :global(.md-…)`. Author-facing reference: `content/landing/README.md`.
+The directive parser emits `data-md-directive` / `data-md-button` data attributes on the underlying HTML, and the React component overrides in `MarkdownContent.tsx` look at those to swap in the right shadcn primitive.
 
 ## Resend signup
 
@@ -148,41 +156,33 @@ The SDK returns `{ data, error }` and never throws on API errors — this route 
 
 ## Theming (light + dark)
 
-The site supports both light and dark modes. The mechanism:
-
-- **Tokens** are defined twice in `app/colors.css`: on `:root` (light defaults) and on `[data-theme="dark"]` (dark overrides). Shadows in `app/motion.css` follow the same pattern.
-- **No-flash init**: `lib/theme-init.ts` exports an inline script that runs in `<head>` before paint. It reads `localStorage["theme"]` (`"light"` or `"dark"`), falls back to OS preference, and sets `data-theme` + `color-scheme` on `<html>`.
-- **Toggle**: `components/ThemeToggle/` is mounted in the root layout (fixed top-right). It writes the user's choice to `localStorage`.
-- **Component rule**: NEVER hardcode `#fff`, `#000`, or `rgb(255 255 255 / X)` / `rgb(0 0 0 / X)` in component CSS. Use semantic tokens:
-  - Surfaces: `--color-surface`, `--color-surface-raised`, `--color-surface-subtle`
-  - Borders: `--color-border`, `--color-border-strong`
-  - Text: `--color-text-primary`, `--color-text-secondary`, `--color-text-tertiary`, `--color-text-fade-stop` (for gradient-text effects)
-  - Hover overlays: `--color-overlay-faint`, `--color-overlay`, `--color-overlay-strong`
-  - Status: `--color-danger`
-- **SVGs**: use `currentColor` so they inherit the themed text color (see `components/Logo/parseLogo.ts` which auto-converts `"black"` fills to `currentColor`).
+- **Tokens** live in `app/globals.css`: shadcn defines semantic OKLCH color tokens on `:root` (light) and `.dark` (dark) blocks, surfaced through Tailwind v4's `@theme inline` so `bg-background`, `text-foreground`, `text-muted-foreground`, etc. resolve correctly.
+- **No-flash + persistence** are handled by `next-themes` (mounted in `app/layout.tsx` via `components/ThemeProvider.tsx`). It mounts `.dark` on `<html>` before paint and persists the user's choice in `localStorage`.
+- **Toggle**: `components/ThemeToggle/` is a `DropdownMenu` with Light / Dark / System options. Mounted by `LandingHeader`.
+- **Component rule**: never hardcode raw colors. Always use shadcn semantic tokens (`bg-background`, `bg-card`, `bg-primary`, `text-foreground`, `text-muted-foreground`, `border`, `ring`, `bg-destructive`). Layout overrides via `className` are fine; styling overrides on shadcn components are not.
 
 ## Design system
 
-Framer-inspired aesthetic. Tokens live in `app/*.css` and are loaded through `globals.css`:
+shadcn/ui is the source of truth for look-and-feel. All visual primitives (Button, Input, Field, Card, Alert, Accordion, DropdownMenu, etc.) live under `components/ui/` and are added through `npx shadcn@latest add`. Custom CSS Modules and the legacy `app/colors.css` / `spacing.css` / `radius.css` / `typography.css` / `motion.css` files have been deleted; do not reintroduce them.
 
-- **Colors**: themed surfaces (`--color-surface`, `--color-surface-raised`, `--color-surface-subtle`), translucent borders, electric blue accent (`--color-accent`, `--color-accent-strong`, `--color-accent-soft`).
-- **Spacing**: 4px grid, with `--space-1` through `--space-64`.
-- **Radii**: `--radius-xs` → `--radius-3xl` plus `--radius-full` for pills.
-- **Typography**: `Die Grotesk A` (already shipped). Utility classes: `type-hero`, `type-display`, `type-title`, `type-subtitle`, `type-body-regular`, `type-body-medium`, `type-small`, `type-eyebrow`.
-- **Motion**: easings `--ease-expo-out`, `--ease-quart-out`, `--ease-soft`, `--ease-overshoot`. Durations `--duration-fast` (150ms) → `--duration-xslow` (650ms).
-- **Containers**: `.container-sm` / `.container-md` / `.container-lg` / `.container-xl` apply max-width + page padding.
-
-Button variants: `primary`, `secondary`, `outline`, `ghost`, `ghostOnDark`, `cta`. All pill-shaped via `--radius-full`.
+- **Typography**: `Die Grotesk A` is registered via `@font-face` in `globals.css` and bound to `--font-sans` on `:root`. shadcn's `font-sans` class picks it up automatically.
+- **Colors / radii / spacing**: use Tailwind utility classes with shadcn semantic tokens. Never hardcode raw values like `bg-blue-500`.
+- **Motion**: Framer Motion is still allowed for hero entry animations and one-off effects, but micro-interactions (hover, focus, disabled) are handled by shadcn defaults.
 
 ## Conventions
 
-- **Server Components by default**; opt into Client only for state, animation, browser APIs (`LandingHero`, `EmailSignup`).
-- One folder per component: `Component.tsx`, `Component.module.css`, `index.ts`.
-- Import via `@/components/...`, `@/lib/...`.
-- Native CSS nesting inside `.module.css` (no preprocessor).
-- Respect `prefers-reduced-motion` (handled globally in `globals.css` + via `useReducedMotion()` in Framer Motion components).
-- Semicolons, accessible focus rings, keyboard-friendly forms.
-- Add new abstractions only when logic repeats 3+ times.
+- **Server Components by default**; opt into Client only for state, animation, or browser APIs (`LandingHero`, `EmailSignup`, `ThemeToggle`, `ThemeProvider`, shadcn components that need `"use client"`).
+- **One folder per app component**: `Component.tsx` + `index.ts`. No `.module.css` files — styling is Tailwind utility classes only.
+- **Import via aliases**: `@/components/ui/...` for shadcn primitives, `@/components/...` for app components, `@/lib/...` for utilities.
+- **Always use shadcn primitives** if one exists for the job (Button, Alert, Card, Accordion, DropdownMenu, Field, InputGroup, etc.). Compose, don't reinvent.
+- **`className` for layout, not styling**. Never override a shadcn component's colors, typography, or borders — pick the right variant instead.
+- **Use semantic shadcn tokens** (`bg-background`, `text-muted-foreground`) and never raw Tailwind colors (`bg-blue-500`).
+- **No `space-y-*` / `space-x-*`** — use `flex flex-col gap-*` or `grid gap-*`.
+- **Use `size-*` when width and height are equal** — `size-10`, not `w-10 h-10`.
+- **Use `cn()` from `@/lib/utils`** for conditional classes, not manual template literals.
+- **Respect `prefers-reduced-motion`**: `useReducedMotion()` in Framer Motion components.
+- **Semicolons, accessible focus rings, keyboard-friendly forms.**
+- **Add new abstractions only when logic repeats 3+ times.**
 
 ## Run
 
@@ -195,3 +195,11 @@ Build:
 ```
 npm run build
 ```
+
+## Adding more shadcn components
+
+```
+npx shadcn@latest add <component>
+```
+
+See `npx shadcn@latest search` to find what exists, and the [shadcn docs](https://ui.shadcn.com/docs/components) for usage.

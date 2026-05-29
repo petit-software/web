@@ -5,7 +5,6 @@ import MarkdownContent from "@/components/MarkdownContent";
 import LandingFAQ from "@/components/LandingFAQ";
 import LandingCTA from "@/components/LandingCTA";
 import type { LoadedLanding } from "@/lib/markdown";
-import styles from "./LandingPageTemplate.module.css";
 
 interface LandingPageTemplateProps {
   slug: string;
@@ -15,9 +14,9 @@ interface LandingPageTemplateProps {
 export default function LandingPageTemplate({ slug, content }: LandingPageTemplateProps) {
   const { frontmatter, body } = content;
   return (
-    <div className={styles.main}>
+    <div className="flex min-h-screen flex-col">
       <LandingHeader />
-      <main>
+      <main className="flex-1 pt-[68px]">
         <LandingHero hero={frontmatter.hero} slug={slug} />
         <LandingAnswer aeo={frontmatter.aeo} />
         <MarkdownContent slug={slug} body={body} />

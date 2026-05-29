@@ -5,8 +5,10 @@ import remarkDirective from "remark-directive";
 import { visit } from "unist-util-visit";
 import type { Plugin } from "unified";
 import type { Root } from "mdast";
+import { AlertTriangleIcon, InfoIcon, LightbulbIcon } from "lucide-react";
 import { resolveImagePath } from "@/lib/markdown";
-import styles from "./MarkdownContent.module.css";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface MarkdownContentProps {
   slug: string;
@@ -40,19 +42,16 @@ const remarkLandingDirectives: Plugin<[], Root> = () => (tree) => {
     if (!DIRECTIVE_NAMES.has(directive.name)) return;
 
     const data = directive.data ?? (directive.data = {});
-    const { class: extraClass, variant, href, ...rest } = directive.attributes ?? {};
-    const variantClass = variant ? ` md-${directive.name}--${variant}` : "";
-    const className = `md-${directive.name}${variantClass}${extraClass ? ` ${extraClass}` : ""}`;
+    const { class: _extraClass, variant, href, ...rest } = directive.attributes ?? {};
 
     if (directive.name === "button") {
       const target = href ?? "#signup";
       const external = /^https?:\/\//.test(target);
-      const baseVariant = variant ?? "cta";
       data.hName = "a";
       data.hProperties = {
         ...rest,
         href: target,
-        className: `md-button md-button--${baseVariant}${extraClass ? ` ${extraClass}` : ""}`,
+        "data-md-button": variant ?? "default",
         ...(external ? { target: "_blank", rel: "noreferrer noopener" } : {}),
       };
       return;
@@ -62,7 +61,8 @@ const remarkLandingDirectives: Plugin<[], Root> = () => (tree) => {
     data.hName = tag;
     data.hProperties = {
       ...rest,
-      className,
+      "data-md-directive": directive.name,
+      ...(variant ? { "data-variant": variant } : {}),
     };
 
     if (directive.name === "full-width") {
@@ -75,43 +75,73 @@ const remarkLandingDirectives: Plugin<[], Root> = () => (tree) => {
   });
 };
 
+const BUTTON_VARIANT_MAP: Record<string, "default" | "secondary" | "outline" | "ghost" | "destructive" | "link"> = {
+  default: "default",
+  cta: "default",
+  primary: "default",
+  secondary: "secondary",
+  outline: "outline",
+  ghost: "ghost",
+  warn: "destructive",
+  link: "link",
+};
+
+function calloutIcon(variant: string | undefined) {
+  if (variant === "warn") return <AlertTriangleIcon />;
+  if (variant === "note") return <InfoIcon />;
+  return <LightbulbIcon />;
+}
+
+function columnGridClass(variant: string | undefined) {
+  if (variant === "halves") return "md:grid-cols-2";
+  if (variant === "thirds") return "md:grid-cols-3";
+  return "md:grid-cols-2 lg:grid-cols-3";
+}
+
 export default function MarkdownContent({ slug, body }: MarkdownContentProps) {
   return (
-    <section className={styles.section}>
-      <div className={`container-md ${styles.prose}`}>
+    <section className="mx-auto w-full max-w-3xl px-6 py-12 md:py-16">
+      <article className="prose prose-neutral dark:prose-invert max-w-none">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkDirective, remarkLandingDirectives]}
           components={{
             img: ({ src, alt, ...rest }) => {
               if (!src || typeof src !== "string") return null;
               const resolved = resolveImagePath(slug, src);
-              const fullWidth =
-                (rest as Record<string, unknown>)["data-full-width"] === "true";
+              const fullWidth = (rest as Record<string, unknown>)["data-full-width"] === "true";
               return (
-                <span
-                  className={`${styles.imageBlock}${
-                    fullWidth ? ` ${styles.imageBlockFullWidth}` : ""
-                  }`}
-                >
-                  <Image
-                    src={resolved}
-                    alt={alt ?? ""}
-                    width={fullWidth ? 2400 : 1600}
-                    height={fullWidth ? 1200 : 900}
-                    sizes={fullWidth ? "100vw" : "(min-width: 56rem) 56rem, 100vw"}
-                    className={styles.image}
-                  />
-                </span>
+                <Image
+                  src={resolved}
+                  alt={alt ?? ""}
+                  width={fullWidth ? 2400 : 1600}
+                  height={fullWidth ? 1200 : 900}
+                  sizes={fullWidth ? "100vw" : "(min-width: 56rem) 56rem, 100vw"}
+                  className="my-6 h-auto w-full rounded-xl border"
+                />
               );
             },
-            a: ({ href, children, className, node: _node, ...rest }) => {
+            a: ({ href, children, node: _node, ...rest }) => {
+              const buttonVariant = (rest as Record<string, unknown>)["data-md-button"] as
+                | string
+                | undefined;
               const external = href?.startsWith("http");
-              const isButton =
-                typeof className === "string" && className.includes("md-button");
+              if (buttonVariant) {
+                const variant = BUTTON_VARIANT_MAP[buttonVariant] ?? "default";
+                return (
+                  <Button asChild variant={variant} className="no-underline">
+                    <a
+                      href={href}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noreferrer noopener" : undefined}
+                    >
+                      {children}
+                    </a>
+                  </Button>
+                );
+              }
               return (
                 <a
                   href={href}
-                  className={isButton ? className : styles.link}
                   target={external ? "_blank" : undefined}
                   rel={external ? "noreferrer noopener" : undefined}
                   {...rest}
@@ -120,11 +150,51 @@ export default function MarkdownContent({ slug, body }: MarkdownContentProps) {
                 </a>
               );
             },
+            div: ({ children, node: _node, ...rest }) => {
+              const dir = (rest as Record<string, unknown>)["data-md-directive"] as
+                | string
+                | undefined;
+              const variant = (rest as Record<string, unknown>)["data-variant"] as
+                | string
+                | undefined;
+              switch (dir) {
+                case "callout":
+                  return (
+                    <Alert className="not-prose my-6">
+                      {calloutIcon(variant)}
+                      <AlertDescription>{children}</AlertDescription>
+                    </Alert>
+                  );
+                case "full-width":
+                  return (
+                    <div className="not-prose my-12 -mx-6 md:-mx-12 lg:-mx-24">{children}</div>
+                  );
+                case "wide":
+                  return (
+                    <div className="not-prose mx-auto my-12 max-w-5xl px-6">{children}</div>
+                  );
+                case "columns":
+                  return (
+                    <div
+                      className={`not-prose my-8 grid grid-cols-1 gap-6 ${columnGridClass(variant)}`}
+                    >
+                      {children}
+                    </div>
+                  );
+                case "column":
+                  return <div className="flex flex-col gap-3">{children}</div>;
+                case "buttons":
+                  return (
+                    <div className="not-prose my-6 flex flex-wrap gap-3">{children}</div>
+                  );
+              }
+              return <div {...rest}>{children}</div>;
+            },
           }}
         >
           {body}
         </ReactMarkdown>
-      </div>
+      </article>
     </section>
   );
 }

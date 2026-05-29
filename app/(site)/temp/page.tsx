@@ -1,9 +1,8 @@
 import Logo from "@/components/Logo";
-import styles from "./page.module.css";
 
 export default function TempPage() {
   return (
-    <main className={styles.page}>
+    <main className="relative flex min-h-dvh flex-col items-center justify-center">
       <Logo />
     </main>
   );

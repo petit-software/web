@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { themeInitScript } from "@/lib/theme-init";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,11 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning className="font-sans">
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster richColors position="bottom-right" />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
